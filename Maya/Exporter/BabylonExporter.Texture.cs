@@ -38,7 +38,7 @@ namespace Maya2Babylon
             MFnDependencyNode textureDependencyNode = getTextureDependencyNode(materialDependencyNode, plugName, textureModifiers);
 
 #region MantaLabs
-            // Check textureDependencyNode to see if type is layered texture
+            // Check textureDependencyNode if the type is a layered texture
             if (textureDependencyNode != null && textureDependencyNode.objectProperty.apiType == MFn.Type.kLayeredTexture)
             {
                 Print(textureDependencyNode, logRankTexture, "Print _ExportTexture is a layered texture");
