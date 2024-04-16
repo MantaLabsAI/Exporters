@@ -37,6 +37,31 @@ namespace Maya2Babylon
             List<MFnDependencyNode> textureModifiers = new List<MFnDependencyNode>();
             MFnDependencyNode textureDependencyNode = getTextureDependencyNode(materialDependencyNode, plugName, textureModifiers);
 
+#region MantaLabs
+            // Check textureDependencyNode to see if type is layered texture
+            if (textureDependencyNode != null && textureDependencyNode.objectProperty.apiType == MFn.Type.kLayeredTexture)
+            {
+                Print(textureDependencyNode, logRankTexture, "Print _ExportTexture is a layered texture");
+                // Get the number of connected children
+                MPlugArray connections = new MPlugArray();
+                textureDependencyNode.getConnections(connections);
+                int numChildren = connections.Count;
+                // Iterate over the children in reverse order, to get a valid texture at the bottom of the layer
+                for (int i = numChildren; i >= 0; --i)
+                {
+                    MPlug plug = connections[i];
+                    MObject connectedNode = plug.source.node;
+                    MFnDependencyNode childNode = new MFnDependencyNode(connectedNode);
+                    // Check if the child is a file texture
+                    if (childNode.objectProperty.apiType == MFn.Type.kFileTexture)
+                    {
+                        textureDependencyNode = childNode;
+                        break;
+                    }
+                }
+            }
+ #endregion MantaLabs
+
             return _ExportTexture(textureDependencyNode, babylonScene, textureModifiers, allowCube, forceAlpha, updateCoordinatesMode, amount);
         }
 
