@@ -47,7 +47,7 @@ namespace Maya2Babylon
                 textureDependencyNode.getConnections(connections);
                 int numChildren = connections.Count;
                 // Iterate over the children in reverse order, to get a valid texture at the bottom of the layer
-                for (int i = numChildren; i >= 0; --i)
+                for (int i = numChildren - 1; i >= 0; --i)
                 {
                     MPlug plug = connections[i];
                     MObject connectedNode = plug.source.node;
