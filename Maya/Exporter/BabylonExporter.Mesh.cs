@@ -1013,10 +1013,18 @@ namespace Maya2Babylon
                 float weight1 = 0;
                 float weight2 = 0;
                 float weight3 = 0;
+                float weightExt0 = 0;
+                float weightExt1 = 0;
+                float weightExt2 = 0;
+                float weightExt3 = 0;
                 int bone0 = 0;
                 int bone1 = 0;
                 int bone2 = 0;
                 int bone3 = 0;
+                int boneExt0 = 0;
+                int boneExt1 = 0;
+                int boneExt2 = 0;
+                int boneExt3 = 0;
                 int nbBones = weightByInfluenceIndex.Count; // number of bones/influences for this vertex
 
                 if (nbBones == 0)
@@ -1050,39 +1058,75 @@ namespace Maya2Babylon
                 }
 
                 float[] weights = { weight0, weight1, weight2, weight3 };
-                vertex.Weights = weights;
-                vertex.BonesIndices = (bone3 << 24) | (bone2 << 16) | (bone1 << 8) | bone0;
+                float totalSum = weights.Sum();
+
+                if (nbBones <= 4 && totalSum != 1.0)
+                {
+                    // Normalize all 4 weights relative to the total sum
+                    weight0 = weights[0] / totalSum;
+                    weight1 = weights[1] / totalSum;
+                    weight2 = weights[2] / totalSum;
+                    weight3 = weights[3] / totalSum;
+
+                    // Update the arrays with normalized values
+                    weights = new float[] { weight0, weight1, weight2, weight3 };
+                    totalSum = weights.Sum();
+                }
 
                 if (nbBones > 4)
                 {
-                    bone0 = weightByInfluenceIndex.ElementAt(4).Key;
-                    weight0 = (float)weightByInfluenceIndex.ElementAt(4).Value;
-                    weight1 = 0;
-                    weight2 = 0;
-                    weight3 = 0;
+                    boneExt0 = weightByInfluenceIndex.ElementAt(4).Key;
+                    weightExt0 = (float)weightByInfluenceIndex.ElementAt(4).Value;
+                    weightExt1 = 0;
+                    weightExt2 = 0;
+                    weightExt3 = 0;
 
                     if (nbBones > 5)
                     {
-                        bone1 = weightByInfluenceIndex.ElementAt(5).Key;
-                        weight1 = (float)weightByInfluenceIndex.ElementAt(4).Value;
+                        boneExt1 = weightByInfluenceIndex.ElementAt(5).Key;
+                        weightExt1 = (float)weightByInfluenceIndex.ElementAt(4).Value;
 
                         if (nbBones > 6)
                         {
-                            bone2 = weightByInfluenceIndex.ElementAt(6).Key;
-                            weight2 = (float)weightByInfluenceIndex.ElementAt(4).Value;
+                            boneExt2 = weightByInfluenceIndex.ElementAt(6).Key;
+                            weightExt2 = (float)weightByInfluenceIndex.ElementAt(4).Value;
 
                             if (nbBones > 7)
                             {
-                                bone3 = weightByInfluenceIndex.ElementAt(7).Key;
-                                weight3 = (float)weightByInfluenceIndex.ElementAt(7).Value;
+                                boneExt3 = weightByInfluenceIndex.ElementAt(7).Key;
+                                weightExt3 = (float)weightByInfluenceIndex.ElementAt(7).Value;
                             }
                         }
                     }
 
-                    float[] weightsExtra = { weight0, weight1, weight2, weight3 };
-                    vertex.WeightsExtra = weightsExtra;
-                    vertex.BonesIndicesExtra = (bone3 << 24) | (bone2 << 16) | (bone1 << 8) | bone0;
+                    float[] weightsExt = { weightExt0, weightExt1, weightExt2, weightExt3 };
+
+                    totalSum += weightsExt.Sum();
+                    if (totalSum != 1.0)
+                    {
+                        // Normalize all 8 weights relative to the total sum
+                        weight0 = weights[0] / totalSum;
+                        weight1 = weights[1] / totalSum;
+                        weight2 = weights[2] / totalSum;
+                        weight3 = weights[3] / totalSum;
+
+                        weightExt0 = weightsExt[0] / totalSum;
+                        weightExt1 = weightsExt[1] / totalSum;
+                        weightExt2 = weightsExt[2] / totalSum;
+                        weightExt3 = weightsExt[3] / totalSum;
+
+                        // Update the arrays with normalized values
+                        weights = new float[] { weight0, weight1, weight2, weight3 };
+                        weightsExt = new float[] { weightExt0, weightExt1, weightExt2, weightExt3 };
+
+                        totalSum = weights.Sum() + weightsExt.Sum();
+                    }
+
+                    vertex.WeightsExtra = weightsExt;
+                    vertex.BonesIndicesExtra = (boneExt3 << 24) | (boneExt2 << 16) | (boneExt1 << 8) | boneExt0;
                 }
+                vertex.Weights = weights;
+                vertex.BonesIndices = (bone3 << 24) | (bone2 << 16) | (bone1 << 8) | bone0;
             }
             return vertex;
         }
